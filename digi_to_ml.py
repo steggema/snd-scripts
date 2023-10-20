@@ -81,10 +81,9 @@ event_meta = np.zeros((N_events, 3))
 # - 0 is vertical (1) or horizontal (0)
 # - 1-3 x/y/z positions of one edge of the strip
 # - 4-6 x/y/z positions of the other edge of the strip
-# - 7 detector type (0: scifi, 1: us, 2: ds)
+# - 7 detector type (0: none 1: scifi, 2: us, 3: ds)
 hitmap = np.zeros((N_events, 8, 1000), dtype=np.float32) # use uint8?
 
-scifi_depth = []
 for i_event, event in tqdm(enumerate(tchain), total=N_events):
     event_pdg0 = event.MCTrack[0].GetPdgCode()
     if options.etype=='neutrino':
@@ -106,8 +105,7 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         # geo.modules['Scifi'].GetPosition(detID, A, B) # https://github.com/SND-LHC/sndsw/blob/a3ff0d0c4dfd8af5b12dbea31f9fb5b70f3c3ce9/shipLHC/Scifi.cxx#L494
         # the second gives errors of type 
         # Error in <TGeoNavigator::cd>: Path /cave_1/Detector_0/volTarget_1/ScifiVolume1_1000000/ScifiHorPlaneVol1_1000000/HorMatVolume_1000000/FiberVolume_1010000 not valid
-        # so we go with the first (which are also fibre positions so fine)
-        scifi_depth = np.append(scifi_depth, A.z())
+        # so we go with the first (which are also fibre positions so probably fine!)
 
         hitmap[i_event, 0, i_hit] = vert
         hitmap[i_event, 1, i_hit] = A.x()
@@ -116,9 +114,11 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         hitmap[i_event, 4, i_hit] = B.x()
         hitmap[i_event, 5, i_hit] = B.y()
         hitmap[i_event, 6, i_hit] = B.z()
-        hitmap[i_event, 7, i_hit] = 0
+        hitmap[i_event, 7, i_hit] = 1
 
         i_hit += 1
+    
+    print('Processed', i_hit, 'Scifi hits')
         
     for aHit in event.Digi_MuFilterHits: # digi_hits:
         # if not aHit.isValid(): continue
@@ -137,9 +137,11 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         hitmap[i_event, 4, i_hit] = B.x()
         hitmap[i_event, 5, i_hit] = B.y()
         hitmap[i_event, 6, i_hit] = B.z()
-        hitmap[i_event, 7, i_hit] = n_sys - 1 # 0: scifi, 1: us, 2: ds
+        hitmap[i_event, 7, i_hit] = n_sys # 1: scifi, 2: us, 3: ds
 
-print(np.unique(np.around(scifi_depth, decimals=0), return_counts=True))
+        i_hit += 1
+    
+    print('Processed', i_hit, 'total hits')
 
 debug = False
 if debug:
@@ -152,5 +154,5 @@ if debug:
             print(f'{det} {detID} horiz pos:', np.around(A, decimals=0), np.around(B, decimals=0))
 
 
-np.save(os.path.join(out_path, 'hits.npy'), hitmap)
+np.savez_compressed(os.path.join(out_path, 'hits.npz'), hitmap)
 np.save(os.path.join(out_path, 'event_metadata.npy'), event_meta)
