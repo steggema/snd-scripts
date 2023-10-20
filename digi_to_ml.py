@@ -90,7 +90,7 @@ if MCFile_path is None:
 tchain.Add(MCFile_path)  
 
 ## OUTPUT FILE
-out_path = os.path.join(options.outPath, +options.etype, *MCDir.split('/')[-2:])
+out_path = os.path.join(options.outPath, options.etype, *MCDir.split('/')[-2:])
 if not os.path.exists(out_path):
     os.makedirs(out_path)
 
