@@ -46,7 +46,7 @@ options = parser.parse_args()
 import SndlhcGeo
 
 # find geofile in the MC dir
-MCDir = os.path.join(options.inputMCDir, options.part) # '/'.join(options.inputMCFile.split('/')[:-1])
+MCDir = os.path.join(options.inputMCDir, str(options.part)) # '/'.join(options.inputMCFile.split('/')[:-1])
 geo_path = None
 for name in os.listdir(MCDir):
     if 'geofile' in name:
