@@ -21,10 +21,10 @@ print('Output file: ', output_file)
 data = np.load(input_files[0])
 # Loop over the rest
 for input_file in input_files[1:]:
-    print('Merging ', input_file)
-    data = np.concatenate((data, np.load(input_file)))
-
+    with np.load(input_file) as data_in:
+        print('Merging ', input_file)
+        data = np.concatenate((data, data_in)['arr_0'])
 
 # Save the output
 print('Saving to ', output_file)
-np.savez_compressed(output_file, **data)
+np.savez_compressed(output_file, data)
