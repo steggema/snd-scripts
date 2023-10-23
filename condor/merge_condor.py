@@ -18,12 +18,12 @@ print('Input files: ', input_files)
 print('Output file: ', output_file)
 
 # Load the first file
-data = np.load(input_files[0])
+data = np.load(input_files[0])['arr_0']
 # Loop over the rest
 for input_file in input_files[1:]:
     with np.load(input_file) as data_in:
         print('Merging ', input_file)
-        data = np.concatenate((data, data_in)['arr_0'])
+        data = np.concatenate(data, data_in['arr_0'])
 
 # Save the output
 print('Saving to ', output_file)
