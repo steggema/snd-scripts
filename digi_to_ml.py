@@ -84,6 +84,9 @@ event_meta = np.zeros((N_events, 3))
 # - 7 detector type (0: none 1: scifi, 2: us, 3: ds)
 hitmap = np.zeros((N_events, 8, 1000), dtype=np.float32) # use uint8?
 
+n_total = []
+n_scifi = []
+
 for i_event, event in tqdm(enumerate(tchain), total=N_events):
     event_pdg0 = event.MCTrack[0].GetPdgCode()
     if options.etype=='neutrino':
@@ -117,8 +120,8 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         hitmap[i_event, 7, i_hit] = 1
 
         i_hit += 1
-    
-    print('Processed', i_hit, 'Scifi hits')
+
+    n_scifi.append(i_hit)
         
     for aHit in event.Digi_MuFilterHits: # digi_hits:
         # if not aHit.isValid(): continue
@@ -141,7 +144,12 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
 
         i_hit += 1
     
-    print('Processed', i_hit, 'total hits')
+    n_total.append(i_hit)
+
+print('Total number of hits:', np.sum(n_total))
+print('Total number of scifi hits:', np.sum(n_scifi))
+print('Max number of hits in an event:', np.max(n_total))
+print('Max number of scifi hits in an event:', np.max(n_scifi))
 
 debug = False
 if debug:
