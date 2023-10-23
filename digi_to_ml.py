@@ -27,8 +27,10 @@ parser.add_argument("-p", "--partition", dest="part", help="number of starting p
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
+parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", help="Maximum number of hits to save", default=4000)
 
 options = parser.parse_args()
+n_hits_max = int(options.nhitsmax)
 
 import SndlhcGeo # import takes some time so putting it after the arg parser
 
@@ -82,7 +84,7 @@ event_meta = np.zeros((N_events, 3))
 # - 1-3 x/y/z positions of one edge of the strip
 # - 4-6 x/y/z positions of the other edge of the strip
 # - 7 detector type (0: none 1: scifi, 2: us, 3: ds)
-hitmap = np.zeros((N_events, 8, 1000), dtype=np.float32) # use uint8?
+hitmap = np.zeros((N_events, 8, n_hits_max), dtype=np.float32) # use uint8?
 
 n_total = []
 n_scifi = []
@@ -101,6 +103,10 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
     i_hit = 0
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
+        if i_hit >= n_hits_max:
+            print('WARNING: More than', n_hits_max, 'sci fit hits')
+            break
+
         # if not aHit.isValid(): continue
         detID = aHit.GetDetectorID()
         vert = aHit.isVertical()
@@ -124,6 +130,9 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
     n_scifi.append(i_hit)
         
     for aHit in event.Digi_MuFilterHits: # digi_hits:
+        if i_hit >= n_hits_max:
+            print('WARNING: More than', n_hits_max, 'sci fit + muon hits')
+            break
         # if not aHit.isValid(): continue
         detID = aHit.GetDetectorID()
         vert = aHit.isVertical()
