@@ -76,10 +76,14 @@ if not os.path.exists(out_path):
 
 N_events = tchain.GetEntries()
 print("N events:", N_events)
+
+# Event metadata with 3 entries/event:
+# - 0: z position of the neutrino interaction
+# - 1: pdg code of the neutrino
+# - 2: pz of the neutrino
 event_meta = np.zeros((N_events, 3))
 
-# hitmap = {}
-# 8 entries: 
+# Hitmap with 8 entries/hit: 
 # - 0 is vertical (1) or horizontal (0)
 # - 1-3 x/y/z positions of one edge of the strip
 # - 4-6 x/y/z positions of the other edge of the strip
@@ -98,7 +102,7 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         if not (event.MCTrack[0].GetPdgCode()==2112): continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
     
-    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode(), event.MCTrack[1].GetPdgCode())
+    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode(), event.MCTrack[0].GetPz())
     
     i_hit = 0
 
