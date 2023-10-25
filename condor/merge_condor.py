@@ -1,4 +1,4 @@
-'''Python script that merges the numpy npz files that come out of the condor pre-processing'''
+'''Python script that merges the numpy npz or npy files that come out of the condor pre-processing'''
 
 import numpy as np
 
@@ -23,11 +23,16 @@ j = 0
 # Loop over the rest
 for i, input_file in enumerate(input_files):
     if i % args.n_merge == 0:
-        data = np.load(input_file)['arr_0']
+        data = np.load(input_file)
+        if 'npz' in input_file:
+            data = data['arr_0']
     else:
-        with np.load(input_file) as data_in:
-            print('Merging ', input_file)
-            data = np.concatenate([data, data_in['arr_0']])
+        if 'npz' in input_file:
+            with np.load(input_file) as data_in:
+                print('Merging ', input_file)
+                data = np.concatenate([data, data_in['arr_0']])
+        else:
+            data = np.concatenate([data, np.load(input_file)])
     print(i+1, type(i+1), (i + 1) % args.n_merge, args.n_merge, type(args.n_merge))
     if (i + 1) % args.n_merge == 0 or i == len(input_files) - 1:
         # Save the output
