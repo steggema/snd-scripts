@@ -175,5 +175,4 @@ if debug:
             print(f'{det} {detID} horiz pos:', np.around(A, decimals=0), np.around(B, decimals=0))
 
 
-np.savez_compressed(os.path.join(out_path, 'hits.npz'), hitmap)
-np.save(os.path.join(out_path, 'event_metadata.npy'), event_meta)
+np.savez_compressed(os.path.join(out_path, 'hits.npz'), hits=hitmap, targets=event_meta)
