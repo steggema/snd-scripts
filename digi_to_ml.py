@@ -24,6 +24,7 @@ from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument("-mc", "--inputmc_dir", dest="inputmc_dir", help="Monte Carlo input directory", required=False, default="/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volMuFilter_20fb-1_SNDG18_02a_01_000/")
 parser.add_argument("-p", "--partition", dest="part", help="number of starting partition", default=0)
+parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="number of ending partition", default=-1)
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
@@ -35,7 +36,7 @@ n_hits_max = int(options.nhitsmax)
 import SndlhcGeo # import takes some time so putting it after the arg parser
 
 # find geofile in the MC dir
-mc_dir = os.path.join(options.inputmc_dir, str(options.part)) # '/'.join(options.inputMCFile.split('/')[:-1])
+mc_dir = os.path.join(options.inputmc_dir, str(options.part))
 geo_path = None
 for name in os.listdir(mc_dir):
     if 'geofile' in name:
@@ -64,6 +65,16 @@ if mc_file_path is None:
     raise RuntimeError("no MC digi file found in the MC directory")
 
 tchain.Add(mc_file_path)  
+
+if options.end_part > options.part:
+    for part in range(int(options.part)+1, options.end_part+1):
+        add_dir = os.path.join(options.inputmc_dir, str(part))
+        for name in os.listdir(add_dir):
+            if name.endswith('digCPP.root'):
+                tchain.Add(os.path.join(add_dir, name))
+                break
+        else: 
+            print('No digi file found for partition', part, 'in dir', add_dir)
 
 ## OUTPUT FILE
 out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:])
