@@ -66,9 +66,12 @@ if mc_file_path is None:
 
 tchain.Add(mc_file_path)  
 
-if options.end_part > options.part:
+if options.end_part > int(options.part):
     for part in range(int(options.part)+1, options.end_part+1):
         add_dir = os.path.join(options.inputmc_dir, str(part))
+        if not os.path.exists(add_dir):
+            print('Partition', part, 'does not exist', 'in dir', add_dir)
+            continue
         for name in os.listdir(add_dir):
             if name.endswith('digCPP.root'):
                 tchain.Add(os.path.join(add_dir, name))
@@ -77,7 +80,7 @@ if options.end_part > options.part:
             print('No digi file found for partition', part, 'in dir', add_dir)
 
 ## OUTPUT FILE
-out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:])
+out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:] if options.etype=='neutrino' else mc_dir.split('/')[-3:])
 if not os.path.exists(out_path):
     print('Creating output directory:', out_path)
     os.makedirs(out_path)
