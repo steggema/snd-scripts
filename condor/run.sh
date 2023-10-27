@@ -11,6 +11,7 @@ echo $SNDSW_ROOT
 MC_PATH="/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volTarget_100fb-1_SNDG18_02a_01_000" # This is the neutrino MC from here https://twiki.cern.ch/twiki/bin/view/SndLHC/NeutrinoMC
 etype=$1
 partition=$2
+MCPATH=$3
 
 #4705 4654 4661 4713 4778 5113
 OUTPUTDIR=/afs/cern.ch/user/s/steggema/work/snd/data/
