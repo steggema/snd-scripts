@@ -49,9 +49,8 @@ if __name__ == '__main__':
 
     for i in tqdm(range(args.n_files)):
         in_file_name = os.path.join(args.input_dir, f'output_{i}.npz')
-        in_target_name = os.path.join(args.input_dir, f'targets_{i}.npz')
-        with np.load(in_file_name) as in_file, np.load(in_target_name) as in_target:
-            arr = in_file['arr_0']
-            target = in_target['arr_0']
+        with np.load(in_file_name) as in_file:
+            arr = in_file['hits']
+            target = in_file['targets']
             np_to_pyg(arr, target, f'{output_dir}/output_{i}.pt.gz')
 

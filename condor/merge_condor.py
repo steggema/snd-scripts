@@ -29,7 +29,7 @@ for i, input_file in enumerate(input_files):
     else:
         with np.load(input_file) as data_in:
             print('Merging ', input_file)
-            hits = np.concatenate([data, data_in['hits']])
+            hits = np.concatenate([hits, data_in['hits']])
             targets = np.concatenate([targets, data_in['targets']])
 
     if (i + 1) % args.n_merge == 0 or i == len(input_files) - 1:
