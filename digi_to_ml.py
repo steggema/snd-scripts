@@ -4,14 +4,9 @@ Adapted from https://github.com/golovart/Napoli_emulsion/blob/main/SND/neutrino_
 
 
 ## run example
-# python -i hit_sandbox.py -mc /eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volTarget_100fb-1_SNDG18_02a_01_000 -p 137 -t neutrino
+## neutrino path: /eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volTarget_100fb-1_SNDG18_02a_01_000/
 
-## neutrino path: /eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volTarget_100fb-1_SNDG18_02a_01_000/137/sndLHC.Genie-TGeant4_digCPP.root
-
-## neutron path: /eos/experiment/sndlhc/users/marssnd/PGsim/neutrons/neu_20_30_double/Ntuples/137/sndLHC.PG_2112-TGeant4_digCPP.root
-
-## event metadata format: [Startz, MCTrack[0].GetPdgCode(), MCTrack[1].GetPdgCode()]
-
+## neutron path: /eos/experiment/sndlhc/users/marssnd/PGsim/neutrons/neu_*double/
 
 import os #, atexit
 from datetime import datetime
