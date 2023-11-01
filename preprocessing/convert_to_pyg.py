@@ -1,3 +1,13 @@
+'''Convert SND numpy arrays produced with digi_to_ml.py to pytorch geometric data.
+Takes a list of input files (with wildcard) and produces a specified number of files N.
+Combines events from all input files with the following algorithm:
+- Take every Nth event from each input file.
+- Shuffle the events.
+Note that this leads to slow runtime since each input file is read multiple times 
+(we can't hold of all events in memory at once).
+'''
+
+
 import os
 import glob
 import argparse
@@ -17,14 +27,14 @@ def np_to_pyg(events, arr, target, i_out, n_out):
     # - 7 detector type (0: none 1: scifi, 2: us, 3: ds)
     for i in range(i_out, len(arr), n_out):
         row = arr[i]
-        vertical = torch.tensor(row[:, 0], dtype=torch.float)
-        strip_x = torch.tensor(row[:, 1], dtype=torch.float)
-        strip_y = torch.tensor(row[:, 2], dtype=torch.float)
-        strip_z = torch.tensor(row[:, 3], dtype=torch.float)
-        strip_x_end = torch.tensor(row[:, 4], dtype=torch.float)
-        strip_y_end = torch.tensor(row[:, 5], dtype=torch.float)
-        strip_z_end = torch.tensor(row[:, 6], dtype=torch.float)
-        det = torch.tensor(row[:, 7], dtype=torch.float)
+        vertical = torch.tensor(row[0], dtype=torch.float)
+        strip_x = torch.tensor(row[1], dtype=torch.float)
+        strip_y = torch.tensor(row[2], dtype=torch.float)
+        strip_z = torch.tensor(row[3], dtype=torch.float)
+        strip_x_end = torch.tensor(row[4], dtype=torch.float)
+        strip_y_end = torch.tensor(row[5], dtype=torch.float)
+        strip_z_end = torch.tensor(row[6], dtype=torch.float)
+        det = torch.tensor(row[7], dtype=torch.float)
 
         all_vals = torch.stack([vertical, strip_x, strip_y, strip_z, strip_x_end, strip_y_end, strip_z_end, det], dim=1)
         all_vals = all_vals[det != 0]
@@ -53,7 +63,7 @@ if __name__ == '__main__':
     for i_out in tqdm(range(args.n_files)):
 
         events = []
-        for i, in_file_name in enumerate(tqdm(in_files)):
+        for i, in_file_name in enumerate(tqdm(in_files, leave=False)):
             with np.load(in_file_name) as in_file:
                 arr = in_file['hits']
                 target = in_file['targets']
