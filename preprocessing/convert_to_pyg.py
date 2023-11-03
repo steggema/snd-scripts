@@ -3,6 +3,7 @@ Takes a list of input files (with wildcard) and produces a specified number of f
 Combines events from all input files with the following algorithm:
 - Take every Nth event from each input file.
 - Shuffle the events.
+- Remove events with no hits.
 Note that this leads to slow runtime since each input file is read multiple times 
 (we can't hold of all events in memory at once).
 '''
@@ -19,6 +20,16 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 
+pdgid_to_target = {
+    12: 0,
+    -12: 0,
+    14: 1,
+    -14: 1,
+    16: 2,
+    -16: 2,
+    2112: 3
+}
+
 def np_to_pyg(events, arr, target, i_out, n_out):
     '''Convert numpy array to pytorch geometric data'''
     # - 0 is vertical (1) or horizontal (0)
@@ -28,6 +39,9 @@ def np_to_pyg(events, arr, target, i_out, n_out):
     for i in range(i_out, len(arr), n_out):
         row = arr[i]
         vertical = torch.tensor(row[0], dtype=torch.float)
+        if len(vertical) == 0:
+            continue
+        
         strip_x = torch.tensor(row[1], dtype=torch.float)
         strip_y = torch.tensor(row[2], dtype=torch.float)
         strip_z = torch.tensor(row[3], dtype=torch.float)
@@ -42,7 +56,7 @@ def np_to_pyg(events, arr, target, i_out, n_out):
         # 0: z value where object is created, 1: PDG ID, 2: pZ (longitudinal momentum)
         t = torch.tensor(target[i], dtype=torch.float)
 
-        data = Data(y=t[1], start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+        data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
         events.append(data)
 
 if __name__ == '__main__':
