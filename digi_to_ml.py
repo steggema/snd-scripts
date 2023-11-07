@@ -104,6 +104,7 @@ n_scifi = []
 
 for i_event, event in tqdm(enumerate(tchain), total=N_events):
     event_pdg0 = event.MCTrack[0].GetPdgCode()
+    event_pdg1 = event.MCTrack[1].GetPdgCode()
     if options.etype=='neutrino':
         if not ((np.abs(event_pdg0)//10)==1 and (np.abs(event_pdg0)%2)==0): continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
@@ -111,7 +112,8 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         if not (event.MCTrack[0].GetPdgCode()==2112): continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
     
-    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode(), event.MCTrack[0].GetPz())
+    # Add 100 for neutral-current interactions
+    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz())
     
     i_hit = 0
 
