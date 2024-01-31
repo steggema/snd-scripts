@@ -9,6 +9,7 @@ The two-step procedure is needed because the SND@LHC SW setup does not contain p
 ### SND Digi -> numpy arrays
 
 Main script: [digi_to_ml.py](digi_to_ml.py) runs the conversion based on passed arguments
+
 Condor batch submission: [condor](condor) contains a condor submission files and scripts to create parameter lists and to merge the outputs
 
 ### numpy arrays -> pyg format
