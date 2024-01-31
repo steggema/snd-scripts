@@ -54,14 +54,14 @@ tchain = ROOT.TChain("cbmsim")
 
 mc_file_path = None
 for name in os.listdir(mc_dir):
-    if name.endswith('digCPP.root'):
+    if name.endswith('digCPP.root') or name.endswith('rock_2e8pr.root'):
         mc_file_path = os.path.join(mc_dir, name)
 if mc_file_path is None:
     raise RuntimeError("no MC digi file found in the MC directory")
 
 tchain.Add(mc_file_path)  
 
-if options.end_part > int(options.part):
+if options.part and options.end_part > int(options.part):
     for part in range(int(options.part)+1, options.end_part+1):
         add_dir = os.path.join(options.inputmc_dir, str(part))
         if not os.path.exists(add_dir):
@@ -110,6 +110,9 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
     if options.etype=='neutron':
         if not (event.MCTrack[0].GetPdgCode()==2112): continue
+        #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+    if options.etype=='muon':
+        if not abs(event.MCTrack[0].GetPdgCode())==13: continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
     
     # Add 100 for neutral-current interactions
