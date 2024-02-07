@@ -171,7 +171,7 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
         hitmap[i_hit, 4] = B.x()
         hitmap[i_hit, 5] = B.y()
         hitmap[i_hit, 6] = B.z()
-        hitmap[i_hit, 7] = 1
+        hitmap[i_hit, 7] = 4
 
         i_hit += 1
         
@@ -182,7 +182,7 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
 
         geo.modules['MuFilter'].GetPosition(detID, A, B)
 
-        # The following gives the subsystem number (2: us, 3: ds)
+        # The following gives the subsystem number (1:veto, 2: us, 3: ds)
         n_sys = detID // 10000
 
         hitmap[i_hit, 0] = vert
@@ -192,7 +192,7 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
         hitmap[i_hit, 4] = B.x()
         hitmap[i_hit, 5] = B.y()
         hitmap[i_hit, 6] = B.z()
-        hitmap[i_hit, 7] = n_sys # 1: scifi, 2: us, 3: ds
+        hitmap[i_hit, 7] = n_sys # 1: veto, 2: us, 3: ds
 
         i_hit += 1
     
