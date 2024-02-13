@@ -23,7 +23,7 @@ parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="nu
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
-parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", help="Maximum number of hits to save", default=4000)
+parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", help="Maximum number of hits to save", default=6000)
 
 options = parser.parse_args()
 n_hits_max = int(options.nhitsmax)
