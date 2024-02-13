@@ -75,7 +75,7 @@ if options.part and options.end_part > int(options.part):
             print('No digi file found for partition', part, 'in dir', add_dir)
 
 ## OUTPUT FILE
-out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:] if options.etype=='neutrino' else mc_dir.split('/')[-3:])
+out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:-1] if options.etype=='neutrino' else mc_dir.split('/')[-3:-1])
 if not os.path.exists(out_path):
     print('Creating output directory:', out_path)
     os.makedirs(out_path)
@@ -192,4 +192,4 @@ if debug:
             print(f'{det} {detID} horiz pos:', np.around(A, decimals=0), np.around(B, decimals=0))
 
 
-np.savez_compressed(os.path.join(out_path, 'hits.npz'), hits=hitmap, targets=event_meta)
+np.savez_compressed(os.path.join(out_path, 'hits_{}.npz'.format(*mc_dir.split('/')[-1] if options.etype=='neutrino' else mc_dir.split('/')[-1])), hits=hitmap, targets=event_meta)
