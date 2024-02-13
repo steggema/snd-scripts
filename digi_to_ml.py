@@ -68,7 +68,7 @@ if options.part and options.end_part > int(options.part):
             print('Partition', part, 'does not exist', 'in dir', add_dir)
             continue
         for name in os.listdir(add_dir):
-            if name.endswith('digCPP.root'):
+            if name.endswith('TGeant4_digCPP.root'):
                 tchain.Add(os.path.join(add_dir, name))
                 break
         else: 
