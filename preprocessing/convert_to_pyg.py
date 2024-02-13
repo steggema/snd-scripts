@@ -38,7 +38,22 @@ pdgid_to_target = {
     84: 4
 }
 
-def np_to_pyg(events, arr, target, i_out, n_out):
+pdgid_to_target_3classes = {
+    12: 0, 
+    -12: 0,
+    14: 1,
+    -14: 1,
+
+    # NC
+    112: 2,
+    88: 2,
+    114: 2,
+    86: 2,
+    116: 2,
+    84: 2
+}
+
+def np_to_pyg(events, arr, target, i_out, n_out, n_class):
     '''Convert numpy array to pytorch geometric data'''
     # - 0 is vertical (1) or horizontal (0)
     # - 1-3 x/y/z positions of one edge of the strip
@@ -64,14 +79,24 @@ def np_to_pyg(events, arr, target, i_out, n_out):
         # 0: z value where object is created, 1: PDG ID, 2: pZ (longitudinal momentum)
         t = torch.tensor(target[i], dtype=torch.float)
 
-        data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
-        events.append(data)
+        if ((n_class==3)
+            if(int(t[1]) == 16 or int(t[1]) == -16 or int(t[1]) == 2112 or int(t[1]) == 2212)):
+                #print("dumping ", i, " pdgId: ", int(t[1]) )
+                continue
+            data = Data(y=torch.tensor(pdgid_to_target_3classes[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+            events.append(data)
+        elif(n_class==5)
+            data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+            events.append(data)
+        else:
+            raise RuntimeError("number of classes of particles do not match")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert numpy arrays to pytorch geometric data')
     parser.add_argument("-i", "--input_files", dest="input_files", help="Input npz files (with wildcard)", required=False, default='/Users/jan/cernbox/sndml/*npz')
     parser.add_argument('-o', '--output_dir', dest='output_dir', help='Output directory', required=False, default='output')
     parser.add_argument('-n', '--n_files', dest='n_files', help='Number of output files to be created', required=False, default=30)
+    parser.add_argument('-c', '--n_class', dest='n_class', help='Number of classes of particles', required=False, default=5)
 
     args = parser.parse_args()
 
@@ -90,7 +115,7 @@ if __name__ == '__main__':
                 arr = in_file['hits']
                 target = in_file['targets']
                 
-                np_to_pyg(events, arr, target, i_out, args.n_files)
+                np_to_pyg(events, arr, target, i_out, args.n_files, args.n_class)
 
         with gzip.open(f'{output_dir}/output_{i_out}.pt.gz', 'wb') as f:
             shuffle(events)
