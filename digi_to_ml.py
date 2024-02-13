@@ -90,7 +90,8 @@ print("N events:", N_events)
 # - 0: z position of the neutrino interaction
 # - 1: pdg code of the neutrino
 # - 2: pz of the neutrino
-event_meta = np.zeros((N_events, 3))
+# - 3: event_id, partition + event_i
+event_meta = np.zeros((N_events, 4))
 
 # Hitmap with 8 entries/hit: 
 # - 0 is vertical (1) or horizontal (0)
@@ -115,9 +116,11 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         if not abs(event.MCTrack[0].GetPdgCode())==13: continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
     
+    #set event_id
+    event_id = event_id = (int(options.part)+1)*100000 + i_event
+
     # Add 100 for neutral-current interactions
-    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz())
-    
+    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id)    
     i_hit = 0
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
