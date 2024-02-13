@@ -54,7 +54,7 @@ tchain = ROOT.TChain("cbmsim")
 
 mc_file_path = None
 for name in os.listdir(mc_dir):
-    if name.endswith('digCPP.root') or name.endswith('rock_2e8pr.root'):
+    if name.endswith('TGeant4_digCPP.root') or name.endswith('rock_2e8pr.root'):
         mc_file_path = os.path.join(mc_dir, name)
 if mc_file_path is None:
     raise RuntimeError("no MC digi file found in the MC directory")
