@@ -83,10 +83,10 @@ def np_to_pyg(events, arr, target, i_out, n_out, n_class):
             if(int(t[1]) == 16 or int(t[1]) == -16 or int(t[1]) == 2112 or int(t[1]) == 2212)):
                 #print("dumping ", i, " pdgId: ", int(t[1]) )
                 continue
-            data = Data(y=torch.tensor(pdgid_to_target_3classes[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+            data = Data(y=torch.tensor(pdgid_to_target_3classes[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2],event_id=t[3],vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
             events.append(data)
         elif(n_class==5)
-            data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+            data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], event_id=t[3], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
             events.append(data)
         else:
             raise RuntimeError("number of classes of particles do not match")
