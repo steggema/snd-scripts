@@ -56,6 +56,7 @@ mc_file_path = None
 for name in os.listdir(mc_dir):
     if name.endswith('TGeant4_digCPP.root') or name.endswith('rock_2e8pr.root'):
         mc_file_path = os.path.join(mc_dir, name)
+        print("add mc file to TChian:", os.path.join(mc_dir, name))
 if mc_file_path is None:
     raise RuntimeError("no MC digi file found in the MC directory")
 
@@ -70,6 +71,7 @@ if options.part and options.end_part > int(options.part):
         for name in os.listdir(add_dir):
             if name.endswith('TGeant4_digCPP.root'):
                 tchain.Add(os.path.join(add_dir, name))
+                print("add mc file to TChain:", os.path.join(add_dir, name))
                 break
         else: 
             print('No digi file found for partition', part, 'in dir', add_dir)
@@ -147,7 +149,6 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         hitmap[i_event, 7, i_hit] = 1
 
         i_hit += 1
-
     n_scifi.append(i_hit)
         
     for aHit in event.Digi_MuFilterHits: # digi_hits:
