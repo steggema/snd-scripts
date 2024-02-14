@@ -93,7 +93,7 @@ print("N events:", N_events)
 # - 1: pdg code of the neutrino
 # - 2: pz of the neutrino
 # - 3: event_id, partition + event_i
-# - 4-6: x,y,z on fisrt interaction point
+# - 4-6: x,y,z on first interaction point
 event_meta = np.zeros((N_events, 7))
 
 # Hitmap with 8 entries/hit: 
