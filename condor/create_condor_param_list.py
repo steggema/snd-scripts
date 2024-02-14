@@ -17,7 +17,7 @@ with open('paramlist_neutronMC.txt', 'w') as out_file:
                 end += partitions_to_merge
                 break # only first file
 
-partitions_to_merge = 4
+partitions_to_merge = 1
 with open('paramlist_neutrinoMC.txt', 'w') as out_file:
     sample_dir = os.path.join('/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volTarget_100fb-1_SNDG18_02a_01_000')
     partitions = os.listdir(sample_dir)
@@ -26,7 +26,7 @@ with open('paramlist_neutrinoMC.txt', 'w') as out_file:
     min_partition = min(partitions)
     start, end = min_partition, partitions_to_merge + min_partition
     while end <= max_partition:
-        out_file.write(f"neutrino {start} {sample_dir} {end}\n")
+        out_file.write(f"neutrino {start} {sample_dir} {end-1}\n")
         start += partitions_to_merge
         end += partitions_to_merge
 
