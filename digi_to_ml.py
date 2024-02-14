@@ -23,7 +23,7 @@ parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="nu
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
-parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", help="Maximum number of hits to save", default=4000)
+parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", help="Maximum number of hits to save", default=6000)
 
 options = parser.parse_args()
 n_hits_max = int(options.nhitsmax)
@@ -54,8 +54,9 @@ tchain = ROOT.TChain("cbmsim")
 
 mc_file_path = None
 for name in os.listdir(mc_dir):
-    if name.endswith('digCPP.root') or name.endswith('rock_2e8pr.root'):
+    if name.endswith('TGeant4_digCPP.root') or name.endswith('rock_2e8pr.root'):
         mc_file_path = os.path.join(mc_dir, name)
+        print("add mc file to TChain:", os.path.join(mc_dir, name))
 if mc_file_path is None:
     raise RuntimeError("no MC digi file found in the MC directory")
 
@@ -68,14 +69,15 @@ if options.part and options.end_part > int(options.part):
             print('Partition', part, 'does not exist', 'in dir', add_dir)
             continue
         for name in os.listdir(add_dir):
-            if name.endswith('digCPP.root'):
+            if name.endswith('TGeant4_digCPP.root'):
                 tchain.Add(os.path.join(add_dir, name))
+                print("add mc file to TChain:", os.path.join(add_dir, name))
                 break
         else: 
             print('No digi file found for partition', part, 'in dir', add_dir)
 
 ## OUTPUT FILE
-out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:] if options.etype=='neutrino' else mc_dir.split('/')[-3:])
+out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:-1] if options.etype=='neutrino' else mc_dir.split('/')[-3:-1])
 if not os.path.exists(out_path):
     print('Creating output directory:', out_path)
     os.makedirs(out_path)
@@ -90,7 +92,8 @@ print("N events:", N_events)
 # - 0: z position of the neutrino interaction
 # - 1: pdg code of the neutrino
 # - 2: pz of the neutrino
-event_meta = np.zeros((N_events, 3))
+# - 3: event_id, partition + event_i
+event_meta = np.zeros((N_events, 4))
 
 # Hitmap with 8 entries/hit: 
 # - 0 is vertical (1) or horizontal (0)
@@ -115,9 +118,11 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         if not abs(event.MCTrack[0].GetPdgCode())==13: continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
     
+    #set event_id
+    event_id = event_id = (int(options.part)+1)*100000 + i_event
+
     # Add 100 for neutral-current interactions
-    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz())
-    
+    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id)    
     i_hit = 0
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
@@ -144,7 +149,6 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         hitmap[i_event, 7, i_hit] = 1
 
         i_hit += 1
-
     n_scifi.append(i_hit)
         
     for aHit in event.Digi_MuFilterHits: # digi_hits:
@@ -189,4 +193,4 @@ if debug:
             print(f'{det} {detID} horiz pos:', np.around(A, decimals=0), np.around(B, decimals=0))
 
 
-np.savez_compressed(os.path.join(out_path, 'hits.npz'), hits=hitmap, targets=event_meta)
+np.savez_compressed(os.path.join(out_path, 'hits_{}.npz'.format(*mc_dir.split('/')[-1] if options.etype=='neutrino' else mc_dir.split('/')[-1])), hits=hitmap, targets=event_meta)
