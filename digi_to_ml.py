@@ -88,12 +88,13 @@ if not os.path.exists(out_path):
 N_events = tchain.GetEntries()
 print("N events:", N_events)
 
-# Event metadata with 3 entries/event:
+# Event metadata with 7 entries/event:
 # - 0: z position of the neutrino interaction
 # - 1: pdg code of the neutrino
 # - 2: pz of the neutrino
 # - 3: event_id, partition + event_i
-event_meta = np.zeros((N_events, 4))
+# - 4-6: x,y,z on fisrt interaction point
+event_meta = np.zeros((N_events, 7))
 
 # Hitmap with 8 entries/hit: 
 # - 0 is vertical (1) or horizontal (0)
@@ -108,6 +109,9 @@ n_scifi = []
 for i_event, event in tqdm(enumerate(tchain), total=N_events):
     event_pdg0 = event.MCTrack[0].GetPdgCode()
     event_pdg1 = event.MCTrack[1].GetPdgCode()
+    x1 = event.MCTrack[1].GetStartX()
+    y1 = event.MCTrack[1].GetStartY()
+    z1 = event.MCTrack[1].GetStartZ()
     if options.etype=='neutrino':
         if not ((np.abs(event_pdg0)//10)==1 and (np.abs(event_pdg0)%2)==0): continue
         #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
@@ -122,7 +126,7 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
     event_id = event_id = (int(options.part)+1)*100000 + i_event
 
     # Add 100 for neutral-current interactions
-    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id)    
+    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
     i_hit = 0
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
