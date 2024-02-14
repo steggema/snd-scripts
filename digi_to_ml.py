@@ -193,4 +193,4 @@ if debug:
             print(f'{det} {detID} horiz pos:', np.around(A, decimals=0), np.around(B, decimals=0))
 
 
-np.savez_compressed(os.path.join(out_path, 'hits_{}.npz'.format(*mc_dir.split('/')[-1] if options.etype=='neutrino' else mc_dir.split('/')[-1])), hits=hitmap, targets=event_meta)
+np.savez_compressed(os.path.join(out_path, 'hits_{}.npz'.format(*mc_dir.split('/')[-1:] if options.etype=='neutrino' else mc_dir.split('/')[-1:])), hits=hitmap, targets=event_meta)
