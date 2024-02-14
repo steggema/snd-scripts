@@ -76,7 +76,12 @@ def np_to_pyg(events, arr, target, n_class):
         all_vals = torch.stack([vertical, strip_x, strip_y, strip_z, strip_x_end, strip_y_end, strip_z_end, det], dim=1)
         all_vals = all_vals[det != 0]
 
-        # 0: z value where object is created, 1: PDG ID, 2: pZ (longitudinal momentum)
+        # Event metadata with 7 entries/event:
+        # - 0: z position of the neutrino interaction
+        # - 1: pdg code of the neutrino
+        # - 2: pz of the neutrino
+        # - 3: event_id, partition + event_i
+        # - 4-6: x,y,z on fisrt interaction point   
         t = torch.tensor(target[i], dtype=torch.float)
 
         #print("event id {}".format(t[3]))
@@ -84,10 +89,12 @@ def np_to_pyg(events, arr, target, n_class):
             if(int(t[1]) == 16 or int(t[1]) == -16 or int(t[1]) == 2112 or int(t[1]) == 2212):
                 #print("dumping ", i, " pdgId: ", int(t[1]) )
                 continue
-            data = Data(y=torch.tensor(pdgid_to_target_3classes[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2],event_id=t[3],vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+            data = Data(y=torch.tensor(pdgid_to_target_3classes[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2],event_id=t[3], x1=t[4], y1=t[5], z1=t[6],\
+            vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
             events.append(data)
         elif(n_class==5):
-            data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], event_id=t[3], vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
+            data = Data(y=torch.tensor(pdgid_to_target[int(t[1])], dtype=torch.long), start_z=t[0], pz=t[2], event_id=t[3], x1=t[4], y1=t[5], z1=t[6],\
+            vertical=all_vals[:, 0], strip_x=all_vals[:, 1], strip_y=all_vals[:, 2], strip_z=all_vals[:, 3], strip_x_end=all_vals[:, 4], strip_y_end=all_vals[:, 5], strip_z_end=all_vals[:, 6], det=all_vals[:, 7])
             events.append(data)
         else:
             raise RuntimeError("number of classes of particles do not match")
@@ -96,8 +103,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert numpy arrays to pytorch geometric data')
     parser.add_argument("-i", "--input_dir", dest="input_dir", help="Input directory of npz files", required=False, default='/Users/jan/cernbox/sndml/')
     parser.add_argument('-o', '--output_dir', dest='output_dir', help='Output directory', required=False, default='output')
-    parser.add_argument('-n', '--n_files', dest='n_files', help='Number of output files to be created',  type =int, required=False, default=5)
-    parser.add_argument('-c', '--n_class', dest='n_class', help='Number of classes of particles', required=False, default=5)
+    parser.add_argument('-c', '--n_class', dest='n_class', help='Number of classes of particles', type=int, required=False, default=5)
     parser.add_argument('-s', '--split_ratio', dest='split_ratio', help='split ratio of train val and test set, e.g [0.8, 0.1, 0.1]', required=False, default=[0.8, 0.1, 0.1])
 
     args = parser.parse_args()
