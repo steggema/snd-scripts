@@ -5,11 +5,10 @@
 import os
 import glob
 import argparse
-import gzip
-from random import shuffle
+from typing import Tuple
+
 from tqdm import tqdm
 import numpy as np
-
 import awkward as ak
 
 pdgid_to_target = {
@@ -30,11 +29,12 @@ pdgid_to_target = {
     84: 4
 }
 
-def pdg_id_to_t(pdg_id):
+def pdg_id_to_t(pdg_id: int) -> int:
     return pdgid_to_target[pdg_id]
 
-def np_to_ak(arr, target, output_file):
-    '''Convert numpy array to awkward array'''
+def np_to_ak(arr, target) -> Tuple[ak.Array, ak.Array]:
+    '''Convert numpy hits and target arrasy to 
+    corresponding awkward arrays'''
 
     arr = np.swapaxes(arr, 1, 2)
 
@@ -85,11 +85,11 @@ if __name__ == '__main__':
     print('Input files: ', in_files)
     print('Output folder: ', output_folder)
 
-
-    for i, in_file_name in enumerate(tqdm(in_files, leave=False)):
+    for in_file_name in tqdm(in_files, leave=False):
         with np.load(in_file_name) as in_file:
             arr = in_file['hits']
             target = in_file['targets']
-            hits, targets = np_to_ak(arr, target, output_folder)
-        ak.to_parquet(hits, os.path.join(output_folder, 'hits.pt'))
-        ak.to_parquet(targets, os.path.join(output_folder, 'targets.pt'))
+            hits, targets = np_to_ak(arr, target)
+            out_file_name = os.path.splitext(os.path.basename(in_file_name))[0]
+            ak.to_parquet(hits, os.path.join(output_folder, f'{out_file_name}_hits.pt'))
+            ak.to_parquet(targets, os.path.join(output_folder, f'{out_file_name}_targets.pt'))
