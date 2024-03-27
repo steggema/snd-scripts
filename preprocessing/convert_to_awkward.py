@@ -26,7 +26,9 @@ pdgid_to_target = {
     114: 4,
     86: 4,
     116: 4,
-    84: 4
+    84: 4,
+    13: 5,
+    -13:5
 }
 
 def pdg_id_to_t(pdg_id: int) -> int:
