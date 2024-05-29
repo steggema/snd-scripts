@@ -18,26 +18,30 @@ import ROOT
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument("-mc", "--inputmc_dir", dest="inputmc_dir", help="Monte Carlo input directory", required=False, default="/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volMuFilter_20fb-1_SNDG18_02a_01_000/")
-parser.add_argument("-p", "--partition", dest="part", help="number of starting partition", default=0)
-parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="number of ending partition", default=-1)
+parser.add_argument("-p", "--partition", dest="part", help="number of starting partition (or run number for data)", default=0)
+parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="number of ending partition (or run number) - note this is inclusive", default=-1)
+parser.add_argument("-d", "--is_data", dest="is_data", type=bool, help="is real data?", default=False)
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
-parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", help="Maximum number of hits to save", default=6000)
+parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", type=int, help="Maximum number of hits to save", default=6000)
 
 options = parser.parse_args()
-n_hits_max = int(options.nhitsmax)
+n_hits_max = options.n_hits_max
+is_data = options.is_data
 
 import SndlhcGeo # import takes some time so putting it after the arg parser
 
-# find geofile in the MC dir
+# For MC, there's one geo file in every subdirectory; for data, there is one in the main directory
 mc_dir = os.path.join(options.inputmc_dir, str(options.part))
+if is_data:
+    mc_dir = options.inputmc_dir
 geo_path = None
 for name in os.listdir(mc_dir):
     if 'geofile' in name:
         geo_path = os.path.join(mc_dir, name)
 if geo_path is None:
-    raise RuntimeError("no geofile found in the MC directory")
+    raise RuntimeError(f"no geofile found in the input directory {mc_dir}")
 
 geo = SndlhcGeo.GeoInterface(geo_path)
 lsOfGlobals = ROOT.gROOT.GetListOfGlobals()
@@ -52,26 +56,36 @@ proc_start_time = datetime.now()
 
 tchain = ROOT.TChain("cbmsim")
 
-mc_file_path = None
-for name in os.listdir(mc_dir):
-    if name.endswith('TGeant4_digCPP.root') or name.endswith('rock_2e8pr.root'):
-        mc_file_path = os.path.join(mc_dir, name)
-        print("add mc file to TChain:", os.path.join(mc_dir, name))
-if mc_file_path is None:
-    raise RuntimeError("no MC digi file found in the MC directory")
 
-tchain.Add(mc_file_path)  
+
+file_path = None
+
+if not is_data:
+    for name in os.listdir(mc_dir):
+        if name.endswith('TGeant4_digCPP.root') or name.endswith('rock_2e8pr.root'):
+            file_path = os.path.join(mc_dir, name)
+            print("add mc file to TChain:", file_path)
+            tchain.Add(file_path)  
+else:
+    mc_dir = os.path.join(options.inputmc_dir, f'run_00{options.part}')
+    for name in os.listdir(mc_dir):
+        if name.startswith('sndsw_raw') and name.endswith('.root'):
+            file_path = os.path.join(mc_dir, name)
+            print("add data file to TChain:", file_path)
+            tchain.Add(file_path)  
+if file_path is None:
+    raise RuntimeError("no MC digi file found in the MC directory")
 
 if options.part and options.end_part > int(options.part):
     for part in range(int(options.part)+1, options.end_part+1):
-        add_dir = os.path.join(options.inputmc_dir, str(part))
+        add_dir = os.path.join(options.inputmc_dir,  f'run_00{part}' if is_data else str(part))
         if not os.path.exists(add_dir):
             print('Partition', part, 'does not exist', 'in dir', add_dir)
             continue
         for name in os.listdir(add_dir):
-            if name.endswith('TGeant4_digCPP.root'):
+            if name.endswith('TGeant4_digCPP.root') or (name.startswith('sndsw_raw') and name.endswith('.root')):
                 tchain.Add(os.path.join(add_dir, name))
-                print("add mc file to TChain:", os.path.join(add_dir, name))
+                print("add file to TChain:", os.path.join(add_dir, name))
                 break
         else: 
             print('No digi file found for partition', part, 'in dir', add_dir)
@@ -107,26 +121,31 @@ n_total = []
 n_scifi = []
 
 for i_event, event in tqdm(enumerate(tchain), total=N_events):
-    event_pdg0 = event.MCTrack[0].GetPdgCode()
-    event_pdg1 = event.MCTrack[1].GetPdgCode()
-    x1 = event.MCTrack[1].GetStartX()
-    y1 = event.MCTrack[1].GetStartY()
-    z1 = event.MCTrack[1].GetStartZ()
-    if options.etype=='neutrino':
-        if not ((np.abs(event_pdg0)//10)==1 and (np.abs(event_pdg0)%2)==0): continue
-        #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
-    if options.etype=='neutron':
-        if not (event.MCTrack[0].GetPdgCode()==2112): continue
-        #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
-    if options.etype=='muon':
-        if not abs(event.MCTrack[0].GetPdgCode())==13: continue
-        #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
-    
-    #set event_id
-    event_id = event_id = (int(options.part)+1)*100000 + i_event
+    if not is_data:
+        event_pdg0 = event.MCTrack[0].GetPdgCode()
+        event_pdg1 = event.MCTrack[1].GetPdgCode()
+        x1 = event.MCTrack[1].GetStartX()
+        y1 = event.MCTrack[1].GetStartY()
+        z1 = event.MCTrack[1].GetStartZ()
+        if options.etype=='neutrino':
+            if not ((np.abs(event_pdg0)//10)==1 and (np.abs(event_pdg0)%2)==0): continue
+            #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+        if options.etype=='neutron':
+            if not (event.MCTrack[0].GetPdgCode()==2112): continue
+            #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+        if options.etype=='muon':
+            if not abs(event.MCTrack[0].GetPdgCode())==13: continue
+            #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+        
+        #set event_id
+        event_id = (int(options.part)+1)*100000 + i_event
 
-    # Add 100 for neutral-current interactions
-    event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
+        # Add 100 for neutral-current interactions
+        event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
+    else:
+        # Note should save event number for data
+        pass
+        
     i_hit = 0
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
