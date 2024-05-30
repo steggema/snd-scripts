@@ -27,7 +27,7 @@ parser.add_argument("-t", "--type", dest="etype", help="event type to select", d
 parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", type=int, help="Maximum number of hits to save", default=6000)
 
 options = parser.parse_args()
-n_hits_max = options.n_hits_max
+n_hits_max = options.nhitsmax
 is_data = options.is_data
 
 import SndlhcGeo # import takes some time so putting it after the arg parser
@@ -99,8 +99,8 @@ if not os.path.exists(out_path):
 # nchan = {'scifi':1536, 'us':10, 'ds':60}
 # nplane = {'scifi':5, 'us':5, 'ds':4}
 
-N_events = tchain.GetEntries()
-print("N events:", N_events)
+N_events = tchain.GetEntries("@Digi_ScifiHits.size()>1")
+print("N events with at least 2 SciFi hits:", N_events)
 
 # Event metadata with 7 entries/event:
 # - 0: z position of the neutrino interaction
@@ -120,7 +120,11 @@ hitmap = np.zeros((N_events, 8, n_hits_max), dtype=np.float32) # use uint8?
 n_total = []
 n_scifi = []
 
+i_ev_sel = 0
 for i_event, event in tqdm(enumerate(tchain), total=N_events):
+    if len(event.Digi_ScifiHits) < 2:
+        continue
+
     if not is_data:
         event_pdg0 = event.MCTrack[0].GetPdgCode()
         event_pdg1 = event.MCTrack[1].GetPdgCode()
@@ -141,7 +145,7 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         event_id = (int(options.part)+1)*100000 + i_event
 
         # Add 100 for neutral-current interactions
-        event_meta[i_event] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
+        event_meta[i_ev_sel] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
     else:
         # Note should save event number for data
         pass
@@ -162,14 +166,14 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         # Error in <TGeoNavigator::cd>: Path /cave_1/Detector_0/volTarget_1/ScifiVolume1_1000000/ScifiHorPlaneVol1_1000000/HorMatVolume_1000000/FiberVolume_1010000 not valid
         # so we go with the first (which are also fibre positions so probably fine!)
 
-        hitmap[i_event, 0, i_hit] = vert
-        hitmap[i_event, 1, i_hit] = A.x()
-        hitmap[i_event, 2, i_hit] = A.y()
-        hitmap[i_event, 3, i_hit] = A.z()
-        hitmap[i_event, 4, i_hit] = B.x()
-        hitmap[i_event, 5, i_hit] = B.y()
-        hitmap[i_event, 6, i_hit] = B.z()
-        hitmap[i_event, 7, i_hit] = 1
+        hitmap[i_ev_sel, 0, i_hit] = vert
+        hitmap[i_ev_sel, 1, i_hit] = A.x()
+        hitmap[i_ev_sel, 2, i_hit] = A.y()
+        hitmap[i_ev_sel, 3, i_hit] = A.z()
+        hitmap[i_ev_sel, 4, i_hit] = B.x()
+        hitmap[i_ev_sel, 5, i_hit] = B.y()
+        hitmap[i_ev_sel, 6, i_hit] = B.z()
+        hitmap[i_ev_sel, 7, i_hit] = 1
 
         i_hit += 1
     n_scifi.append(i_hit)
@@ -187,18 +191,19 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         # The following gives the subsystem number (2: us, 3: ds)
         n_sys = detID // 10000
 
-        hitmap[i_event, 0, i_hit] = vert
-        hitmap[i_event, 1, i_hit] = A.x()
-        hitmap[i_event, 2, i_hit] = A.y()
-        hitmap[i_event, 3, i_hit] = A.z()
-        hitmap[i_event, 4, i_hit] = B.x()
-        hitmap[i_event, 5, i_hit] = B.y()
-        hitmap[i_event, 6, i_hit] = B.z()
-        hitmap[i_event, 7, i_hit] = n_sys # 1: scifi, 2: us, 3: ds
+        hitmap[i_ev_sel, 0, i_hit] = vert
+        hitmap[i_ev_sel, 1, i_hit] = A.x()
+        hitmap[i_ev_sel, 2, i_hit] = A.y()
+        hitmap[i_ev_sel, 3, i_hit] = A.z()
+        hitmap[i_ev_sel, 4, i_hit] = B.x()
+        hitmap[i_ev_sel, 5, i_hit] = B.y()
+        hitmap[i_ev_sel, 6, i_hit] = B.z()
+        hitmap[i_ev_sel, 7, i_hit] = n_sys # 1: scifi, 2: us, 3: ds
 
         i_hit += 1
     
     n_total.append(i_hit)
+    i_ev_sel += 1
 
 print('Total number of hits:', np.sum(n_total))
 print('Total number of scifi hits:', np.sum(n_scifi))
