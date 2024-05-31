@@ -148,6 +148,7 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         event_meta[i_ev_sel] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
     else:
         # Note should save event number for data
+        event_meta[i_ev_sel] = (event.EventHeader.fRunId, event.EventHeader.fFillNumber, event.EventHeader.fEventNumber, 0., 0., 0., 0.)    
         pass
         
     i_hit = 0
