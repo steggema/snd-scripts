@@ -1,5 +1,5 @@
 #!/bin/bash
-SNDLHC_mymaster=/afs/cern.ch/user/s/steggema/work/snd/
+SNDLHC_mymaster=/afs/cern.ch/user/s/steggema/work/snd_lx9/
 export ALIBUILD_WORK_DIR=$SNDLHC_mymaster/sw #for alienv
 
 source /cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/setUp.sh
@@ -13,6 +13,7 @@ etype=$1
 partition=$2
 MC_PATH=$3
 endpartition=$4
+isdata=$5
 
 #4705 4654 4661 4713 4778 5113
 OUTPUTDIR=/afs/cern.ch/user/s/steggema/work/snd/data/
@@ -24,6 +25,6 @@ OUTPUTDIR=/afs/cern.ch/user/s/steggema/work/snd/data/
 #then
 #   return
 #else
-/cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/sw/slc7_x86-64/Python/v3.8.12-local1/bin/python $SNDLHC_mymaster/snd-scripts/digi_to_ml.py -mc $MC_PATH -t $etype -p $partition -o $OUTPUTDIR -e $endpartition
+/cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/bin/python $SNDLHC_mymaster/snd-scripts/digi_to_ml.py -mc $MC_PATH -t $etype -p $partition -o $OUTPUTDIR -e $endpartition -d $isdata
 #fi
 
