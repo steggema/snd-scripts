@@ -18,7 +18,7 @@ import ROOT
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument("-mc", "--inputmc_dir", dest="inputmc_dir", help="Monte Carlo input directory", required=False, default="/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volMuFilter_20fb-1_SNDG18_02a_01_000/")
-parser.add_argument("-p", "--partition", dest="part", help="number of starting partition (or run number for data)", default=0)
+parser.add_argument("-p", "--partition", dest="part", type=int, help="number of starting partition (or run number for data)", default=0)
 parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="number of ending partition (or run number) - note this is inclusive", default=-1)
 parser.add_argument("-d", "--is_data", dest="is_data", type=bool, help="is real data?", default=False)
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
@@ -29,6 +29,9 @@ parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", type=int, help="Maximum
 options = parser.parse_args()
 n_hits_max = options.nhitsmax
 is_data = options.is_data
+
+p_start = options.part
+p_end = options.part if options.end_part < options.part else options.end_part
 
 import SndlhcGeo # import takes some time so putting it after the arg parser
 
@@ -42,6 +45,8 @@ for name in os.listdir(mc_dir):
         geo_path = os.path.join(mc_dir, name)
 if geo_path is None:
     raise RuntimeError(f"no geofile found in the input directory {mc_dir}")
+if is_data:
+    mc_dir = os.path.join(options.inputmc_dir, f'run_00{options.part}')
 
 geo = SndlhcGeo.GeoInterface(geo_path)
 lsOfGlobals = ROOT.gROOT.GetListOfGlobals()
@@ -56,38 +61,16 @@ proc_start_time = datetime.now()
 
 tchain = ROOT.TChain("cbmsim")
 
-
-
-file_path = None
-
-if not is_data:
-    for name in os.listdir(mc_dir):
-        if name.endswith('TGeant4_digCPP.root') or name.endswith('rock_2e8pr.root'):
-            file_path = os.path.join(mc_dir, name)
-            print("add mc file to TChain:", file_path)
-            tchain.Add(file_path)  
-else:
-    mc_dir = os.path.join(options.inputmc_dir, f'run_00{options.part}')
-    for name in os.listdir(mc_dir):
-        if name.startswith('sndsw_raw') and name.endswith('.root'):
-            file_path = os.path.join(mc_dir, name)
-            print("add data file to TChain:", file_path)
-            tchain.Add(file_path)  
-if file_path is None:
-    raise RuntimeError("no MC digi file found in the MC directory")
-
-if options.part and options.end_part > int(options.part):
-    for part in range(int(options.part)+1, options.end_part+1):
-        add_dir = os.path.join(options.inputmc_dir,  f'run_00{part}' if is_data else str(part))
-        if not os.path.exists(add_dir):
-            print('Partition', part, 'does not exist', 'in dir', add_dir)
-            continue
-        for name in os.listdir(add_dir):
-            if name.endswith('TGeant4_digCPP.root') or (name.startswith('sndsw_raw') and name.endswith('.root')):
-                tchain.Add(os.path.join(add_dir, name))
-                print("add file to TChain:", os.path.join(add_dir, name))
-                break
-        else: 
+for part in range(p_start, p_end + 1):
+    add_dir = os.path.join(options.inputmc_dir,  f'run_00{part}' if is_data else str(part))
+    if not os.path.exists(add_dir):
+        print('Partition', part, 'does not exist', 'in dir', add_dir)
+        continue
+    for name in os.listdir(add_dir):
+        if name.endswith('TGeant4_digCPP.root') or (name.startswith('sndsw_raw') and name.endswith('.root')):
+            tchain.Add(os.path.join(add_dir, name))
+            print("add file to TChain:", os.path.join(add_dir, name))
+    else: 
             print('No digi file found for partition', part, 'in dir', add_dir)
 
 ## OUTPUT FILE
