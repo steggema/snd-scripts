@@ -24,10 +24,8 @@ parser.add_argument("-d", "--is_data", dest="is_data", type=bool, help="is real 
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
-parser.add_argument("-n", "--nhitsmax", dest="nhitsmax", type=int, help="Maximum number of hits to save", default=6000)
 
 options = parser.parse_args()
-n_hits_max = options.nhitsmax
 is_data = options.is_data
 
 p_start = options.part
@@ -95,18 +93,37 @@ print("N events with at least 2 SciFi hits:", N_events)
 # - 4-6: x,y,z on first interaction point
 event_meta = np.zeros((N_events, 7))
 
+n_hits_arr = np.zeros((N_events), dtype=np.int32)
+
+# Loop 1: Count hits
+i_ev_sel = 0
+for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
+    n_hits = 0
+    if len(event.Digi_ScifiHits) < 2:
+        continue
+
+    for hits in event.Digi_ScifiHits:
+        n_hits += 1
+    
+    for hits in event.Digi_MuFilterHits:
+        n_hits += 1
+    
+    n_hits_arr[i_ev_sel] = n_hits
+    i_ev_sel += 1
+
+n_hits_total = np.sum(n_hits_arr)
+print('Saving a total number of', n_hits_total, 'hits')
+
 # Hitmap with 8 entries/hit: 
 # - 0 is vertical (1) or horizontal (0)
 # - 1-3 x/y/z positions of one edge of the strip
 # - 4-6 x/y/z positions of the other edge of the strip
 # - 7 detector type (0: none 1: scifi, 2: us, 3: ds)
-hitmap = np.zeros((N_events, 8, n_hits_max), dtype=np.float32) # use uint8?
-
-n_total = []
-n_scifi = []
+hitmap = np.zeros((n_hits_total, 8), dtype=np.float32) # use uint8?
 
 i_ev_sel = 0
-for i_event, event in tqdm(enumerate(tchain), total=N_events):
+i_hit = 0
+for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
     if len(event.Digi_ScifiHits) < 2:
         continue
 
@@ -139,10 +156,6 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
     i_hit = 0
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
-        if i_hit >= n_hits_max:
-            print('WARNING: More than', n_hits_max, 'sci fit hits')
-            break
-
         # if not aHit.isValid(): continue
         detID = aHit.GetDetectorID()
         vert = aHit.isVertical()
@@ -152,22 +165,18 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         # Error in <TGeoNavigator::cd>: Path /cave_1/Detector_0/volTarget_1/ScifiVolume1_1000000/ScifiHorPlaneVol1_1000000/HorMatVolume_1000000/FiberVolume_1010000 not valid
         # so we go with the first (which are also fibre positions so probably fine!)
 
-        hitmap[i_ev_sel, 0, i_hit] = vert
-        hitmap[i_ev_sel, 1, i_hit] = A.x()
-        hitmap[i_ev_sel, 2, i_hit] = A.y()
-        hitmap[i_ev_sel, 3, i_hit] = A.z()
-        hitmap[i_ev_sel, 4, i_hit] = B.x()
-        hitmap[i_ev_sel, 5, i_hit] = B.y()
-        hitmap[i_ev_sel, 6, i_hit] = B.z()
-        hitmap[i_ev_sel, 7, i_hit] = 1
+        hitmap[i_hit, 0] = vert
+        hitmap[i_hit, 1] = A.x()
+        hitmap[i_hit, 2] = A.y()
+        hitmap[i_hit, 3] = A.z()
+        hitmap[i_hit, 4] = B.x()
+        hitmap[i_hit, 5] = B.y()
+        hitmap[i_hit, 6] = B.z()
+        hitmap[i_hit, 7] = 1
 
         i_hit += 1
-    n_scifi.append(i_hit)
         
     for aHit in event.Digi_MuFilterHits: # digi_hits:
-        if i_hit >= n_hits_max:
-            print('WARNING: More than', n_hits_max, 'sci fit + muon hits')
-            break
         # if not aHit.isValid(): continue
         detID = aHit.GetDetectorID()
         vert = aHit.isVertical()
@@ -177,24 +186,19 @@ for i_event, event in tqdm(enumerate(tchain), total=N_events):
         # The following gives the subsystem number (2: us, 3: ds)
         n_sys = detID // 10000
 
-        hitmap[i_ev_sel, 0, i_hit] = vert
-        hitmap[i_ev_sel, 1, i_hit] = A.x()
-        hitmap[i_ev_sel, 2, i_hit] = A.y()
-        hitmap[i_ev_sel, 3, i_hit] = A.z()
-        hitmap[i_ev_sel, 4, i_hit] = B.x()
-        hitmap[i_ev_sel, 5, i_hit] = B.y()
-        hitmap[i_ev_sel, 6, i_hit] = B.z()
-        hitmap[i_ev_sel, 7, i_hit] = n_sys # 1: scifi, 2: us, 3: ds
+        hitmap[i_hit, 0] = vert
+        hitmap[i_hit, 1] = A.x()
+        hitmap[i_hit, 2] = A.y()
+        hitmap[i_hit, 3] = A.z()
+        hitmap[i_hit, 4] = B.x()
+        hitmap[i_hit, 5] = B.y()
+        hitmap[i_hit, 6] = B.z()
+        hitmap[i_hit, 7] = n_sys # 1: scifi, 2: us, 3: ds
 
         i_hit += 1
     
-    n_total.append(i_hit)
     i_ev_sel += 1
 
-print('Total number of hits:', np.sum(n_total))
-print('Total number of scifi hits:', np.sum(n_scifi))
-print('Max number of hits in an event:', np.max(n_total))
-print('Max number of scifi hits in an event:', np.max(n_scifi))
 
 debug = False
 if debug:
