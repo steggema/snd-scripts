@@ -38,10 +38,9 @@ with open('paramlist_data_2023.txt', 'w') as out_file:
     sample_dir = os.path.join('/eos/experiment/sndlhc/convertedData/physics/2023_reprocess/')
     partitions = os.listdir(sample_dir)
     partitions = sorted([int(i[-4:]) for i in partitions if i.startswith('run')])
-    max_partition = max(partitions)
-    min_partition = min(partitions)
-    start, end = 0, partitions_to_merge
-    while start <= len(partitions):
-        out_file.write(f"neutrino {partitions[start]} {sample_dir} {partitions[end-1] if end - 1 < len(partitions) else partitions[-1]} 1\n")
-        start += partitions_to_merge
-        end += partitions_to_merge
+    starts = partitions[::partitions_to_merge]
+    ends = partitions[partitions_to_merge-1::partitions_to_merge]
+    if len(starts) > len(ends):
+        ends.append(partitions[-1])
+    for start, end in zip(starts, ends):
+        out_file.write(f"neutrino {start} {sample_dir} {end} 1\n")
