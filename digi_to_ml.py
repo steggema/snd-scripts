@@ -66,12 +66,14 @@ for part in range(p_start, p_end + 1):
     if not os.path.exists(add_dir):
         print('Partition', part, 'does not exist', 'in dir', add_dir)
         continue
-    for name in os.listdir(add_dir):
-        if name.endswith('TGeant4_digCPP.root') or (name.startswith('sndsw_raw') and name.endswith('.root')):
-            tchain.Add(os.path.join(add_dir, name))
-            print("add file to TChain:", os.path.join(add_dir, name))
-    else: 
-            print('No digi file found for partition', part, 'in dir', add_dir)
+    files = [f for f in os.listdir(add_dir) if f.endswith('TGeant4_digCPP.root') or (f.startswith('sndsw_raw') and f.endswith('.root'))]
+    if len(files) == 0:
+        print('No digi file found for partition', part, 'in dir', add_dir)
+
+    for name in files:
+        tchain.Add(os.path.join(add_dir, name))
+        print("add file to TChain:", os.path.join(add_dir, name))
+            
 
 ## OUTPUT FILE
 out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:-1] if options.etype=='neutrino' else mc_dir.split('/')[-3:-1])

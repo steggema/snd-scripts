@@ -1,3 +1,8 @@
+'''Creates file lists for condor jobs. 
+The MC and data are not saved in a very systematic way in SND, so need targeted code for diferent datasets.
+'''
+
+
 import os
 
 # Neutrons
