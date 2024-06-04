@@ -4,6 +4,7 @@ The MC and data are not saved in a very systematic way in SND, so need targeted 
 
 
 import os
+from glob import glob
 
 # Neutrons
 base_dir = '/eos/experiment/sndlhc/users/marssnd/PGsim/neutrons/'
@@ -38,14 +39,20 @@ with open('paramlist_neutrinoMC.txt', 'w') as out_file:
         end += partitions_to_merge
 
 # 2023 data
-partitions_to_merge = 20
+files_to_merge = 20
 with open('paramlist_data_2023.txt', 'w') as out_file:
     sample_dir = os.path.join('/eos/experiment/sndlhc/convertedData/physics/2023_reprocess/')
-    partitions = os.listdir(sample_dir)
-    partitions = sorted([int(i[-4:]) for i in partitions if i.startswith('run')])
-    starts = partitions[::partitions_to_merge]
-    ends = partitions[partitions_to_merge-1::partitions_to_merge]
+    files = glob(sample_dir+'*/*.root')
+    partitions = sorted([int(i[-24:-20]) for i in files if 'run_' in i])
+    starts = partitions[::files_to_merge]
+    ends = partitions[files_to_merge-1::files_to_merge]
     if len(starts) > len(ends):
         ends.append(partitions[-1])
+    prev_start, prev_end = -1, -1
     for start, end in zip(starts, ends):
+        if start == prev_end:
+            start += 1
+            if start > end:
+                continue
         out_file.write(f"neutrino {start} {sample_dir} {end} 1\n")
+        prev_start, prev_end = start, end
