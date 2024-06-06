@@ -24,9 +24,11 @@ parser.add_argument("-d", "--is_data", dest="is_data", type=bool, help="is real 
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
+parser.add_argument("-nh", "--nhits", dest="nhits", type=int, help="minimum number of scifi hits", default=50)
 
 options = parser.parse_args()
 is_data = options.is_data
+n_hits_min = options.nhits
 
 p_start = options.part
 p_end = options.part if options.end_part < options.part else options.end_part
@@ -99,7 +101,7 @@ n_hits_arr = np.zeros((N_events), dtype=np.int32)
 i_ev_sel = 0
 for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
     n_hits = 0
-    if len(event.Digi_ScifiHits) < 2:
+    if len(event.Digi_ScifiHits) < n_hits_min:
         continue
 
     for hits in event.Digi_ScifiHits:
@@ -124,7 +126,7 @@ hitmap = np.zeros((n_hits_total, 8), dtype=np.float32) # use uint8?
 i_ev_sel = 0
 i_hit = 0
 for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
-    if len(event.Digi_ScifiHits) < 2:
+    if len(event.Digi_ScifiHits) < n_hits_min:
         continue
 
     if not is_data:
