@@ -150,10 +150,7 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
         event_meta[i_ev_sel] = (event.MCTrack[0].GetStartZ(), event.MCTrack[0].GetPdgCode() + 100 *(event_pdg0==event_pdg1), event.MCTrack[0].GetPz(), event_id, x1, y1, z1)    
     else:
         # Note should save event number for data
-        event_meta[i_ev_sel] = (event.EventHeader.GetRunId(), event.EventHeader.GetFillNumber(), event.EventHeader.GetEventNumber(), 0., 0., 0., 0.)    
-        pass
-        
-    i_hit = 0
+        event_meta[i_ev_sel] = (event.EventHeader.GetRunId(), event.EventHeader.GetFillNumber(), event.EventHeader.GetEventNumber(), 0., 0., 0., 0.)
 
     for aHit in event.Digi_ScifiHits: # digi_hits:
         # if not aHit.isValid(): continue
@@ -199,6 +196,7 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
     
     i_ev_sel += 1
 
+print('Filled', i_ev_sel, 'events with', i_hit, 'hits out of total', n_hits_total, 'hits')
 
 debug = False
 if debug:
