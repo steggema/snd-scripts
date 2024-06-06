@@ -24,7 +24,7 @@ parser.add_argument("-d", "--is_data", dest="is_data", type=bool, help="is real 
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
-parser.add_argument("-nh", "--nhits", dest="nhits", type=int, help="minimum number of scifi hits", default=50)
+parser.add_argument("-nh", "--nhits", dest="nhits", type=int, help="minimum number of scifi hits", default=75)
 
 options = parser.parse_args()
 is_data = options.is_data
@@ -84,8 +84,8 @@ if not os.path.exists(out_path):
 # nchan = {'scifi':1536, 'us':10, 'ds':60}
 # nplane = {'scifi':5, 'us':5, 'ds':4}
 
-N_events = tchain.GetEntries("@Digi_ScifiHits.size()>1")
-print("N events with at least 2 SciFi hits:", N_events)
+N_events = tchain.GetEntries(f"@Digi_ScifiHits.size()>={n_hits_min}")
+print(f"N events with at least {n_hits_min} SciFi hits:", N_events)
 
 # Event metadata with 7 entries/event:
 # - 0: z position of the neutrino interaction
@@ -121,7 +121,7 @@ print('Saving a total number of', n_hits_total, 'hits')
 # - 1-3 x/y/z positions of one edge of the strip
 # - 4-6 x/y/z positions of the other edge of the strip
 # - 7 detector type (0: none 1: scifi, 2: us, 3: ds)
-hitmap = np.zeros((n_hits_total, 8), dtype=np.float32) # use uint8?
+hitmap = np.zeros((n_hits_total, 8), dtype=np.float16) 
 
 i_ev_sel = 0
 i_hit = 0
