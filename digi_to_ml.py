@@ -104,11 +104,13 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
     if len(event.Digi_ScifiHits) < n_hits_min:
         continue
 
-    for hits in event.Digi_ScifiHits:
-        n_hits += 1
+    for hit in event.Digi_ScifiHits:
+        if hit.isValid():
+            n_hits += 1
     
-    for hits in event.Digi_MuFilterHits:
-        n_hits += 1
+    for hit in event.Digi_MuFilterHits:
+        if hit.isValid():
+            n_hits += 1
     
     n_hits_arr[i_ev_sel] = n_hits
     i_ev_sel += 1
@@ -154,15 +156,13 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
         # Note should save event number for data
         event_meta[i_ev_sel] = (event.EventHeader.GetRunId(), event.EventHeader.GetFillNumber(), event.EventHeader.GetEventNumber(), 0., 0., 0., 0.)
 
-    for aHit in event.Digi_ScifiHits: # digi_hits:
-        # if not aHit.isValid(): continue
-        detID = aHit.GetDetectorID()
-        vert = aHit.isVertical()
+    for hit in event.Digi_ScifiHits: # digi_hits:
+        if not hit.isValid(): 
+            continue
+
+        detID = hit.GetDetectorID()
+        vert = hit.isVertical()
         geo.modules['Scifi'].GetSiPMPosition(detID, A, B) # https://github.com/SND-LHC/sndsw/blob/a3ff0d0c4dfd8af5b12dbea31f9fb5b70f3c3ce9/shipLHC/Scifi.cxx#L557
-        # geo.modules['Scifi'].GetPosition(detID, A, B) # https://github.com/SND-LHC/sndsw/blob/a3ff0d0c4dfd8af5b12dbea31f9fb5b70f3c3ce9/shipLHC/Scifi.cxx#L494
-        # the second gives errors of type 
-        # Error in <TGeoNavigator::cd>: Path /cave_1/Detector_0/volTarget_1/ScifiVolume1_1000000/ScifiHorPlaneVol1_1000000/HorMatVolume_1000000/FiberVolume_1010000 not valid
-        # so we go with the first (which are also fibre positions so probably fine!)
 
         hitmap[i_hit, 0] = vert
         hitmap[i_hit, 1] = A.x()
@@ -175,10 +175,12 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
 
         i_hit += 1
         
-    for aHit in event.Digi_MuFilterHits: # digi_hits:
-        # if not aHit.isValid(): continue
-        detID = aHit.GetDetectorID()
-        vert = aHit.isVertical()
+    for hit in event.Digi_MuFilterHits: # digi_hits:
+        if not hit.isValid(): 
+            continue
+
+        detID = hit.GetDetectorID()
+        vert = hit.isVertical()
 
         geo.modules['MuFilter'].GetPosition(detID, A, B)
 
