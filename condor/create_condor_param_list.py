@@ -19,7 +19,7 @@ with open('paramlist_neutronMC.txt', 'w') as out_file:
             min_partition = min(partitions)
             start, end = min_partition, partitions_to_merge + min_partition
             while start <= max_partition:
-                out_file.write(f"neutron {start} {sample_dir} {end-1} 0\n")
+                out_file.write(f"neutron {start} {sample_dir} {end-1}\n")
                 start += partitions_to_merge
                 end += partitions_to_merge
                 break # only first file
@@ -34,7 +34,7 @@ with open('paramlist_neutrinoMC.txt', 'w') as out_file:
     min_partition = min(partitions)
     start, end = min_partition, partitions_to_merge + min_partition
     while start <= max_partition:
-        out_file.write(f"neutrino {start} {sample_dir} {end-1} 0\n")
+        out_file.write(f"neutrino {start} {sample_dir} {end-1}\n")
         start += partitions_to_merge
         end += partitions_to_merge
 
@@ -54,5 +54,5 @@ with open('paramlist_data_2023.txt', 'w') as out_file:
             start += 1
             if start > end:
                 continue
-        out_file.write(f"neutrino {start} {sample_dir} {end} 1\n")
+        out_file.write(f"neutrino {start} {sample_dir} {end} -d\n")
         prev_start, prev_end = start, end

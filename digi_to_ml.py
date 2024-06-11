@@ -20,7 +20,7 @@ parser = ArgumentParser()
 parser.add_argument("-mc", "--inputmc_dir", dest="inputmc_dir", help="Monte Carlo input directory", required=False, default="/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volMuFilter_20fb-1_SNDG18_02a_01_000/")
 parser.add_argument("-p", "--partition", dest="part", type=int, help="number of starting partition (or run number for data)", default=0)
 parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="number of ending partition (or run number) - note this is inclusive", default=-1)
-parser.add_argument("-d", "--is_data", dest="is_data", type=bool, help="is real data?", default=False)
+parser.add_argument("-d", "--is_data", dest="is_data",  action='store_true', help="is real data?", default=False)
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
 parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')

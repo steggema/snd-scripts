@@ -25,6 +25,6 @@ OUTPUTDIR=/afs/cern.ch/user/s/steggema/work/snd/data/
 #then
 #   return
 #else
-/cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/bin/python $SNDLHC_mymaster/snd-scripts/digi_to_ml.py -mc $MC_PATH -t $etype -p $partition -o $OUTPUTDIR -e $endpartition -d $isdata
+/cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/bin/python $SNDLHC_mymaster/snd-scripts/digi_to_ml.py -mc $MC_PATH -t $etype -p $partition -o $OUTPUTDIR -e $endpartition $isdata
 #fi
 
