@@ -6,37 +6,36 @@ The MC and data are not saved in a very systematic way in SND, so need targeted 
 import os
 from glob import glob
 
-# Neutrons
-base_dir = '/eos/experiment/sndlhc/users/marssnd/PGsim/neutrons/'
-partitions_to_merge = 150
-with open('paramlist_neutronMC.txt', 'w') as out_file:
-    for sample in os.listdir(base_dir):
-        if 'tgtarea' in sample:
-            sample_dir = os.path.join('/eos/experiment/sndlhc/users/marssnd/PGsim/neutrons/', sample, 'Ntuples')
-            partitions = os.listdir(sample_dir)
-            partitions = [int(i) for i in partitions]
-            max_partition = max(partitions)
-            min_partition = min(partitions)
-            start, end = min_partition, partitions_to_merge + min_partition
-            while start <= max_partition:
-                out_file.write(f"neutron {start} {sample_dir} {end-1}\n")
-                start += partitions_to_merge
-                end += partitions_to_merge
-                break # only first file
+def write_paramlist(out_file, sample_dir, partitions_to_merge):
+    partitions = [int(i) for i in os.listdir(sample_dir)]
+    min_partition, max_partition =  min(partitions), max(partitions)
+    start, end = min_partition, partitions_to_merge + min_partition
+    while start <= max_partition:
+        out_file.write(f"neutron {start} {sample_dir} {min(end-1, max_partition)}\n")
+        start += partitions_to_merge
+        end += partitions_to_merge
+
+def write_nh_paramlist(out_file_name, base_dir, partitions_to_merge):
+    ''' Writes the list for neutral hadron samples.'''
+    with open(out_file_name, 'w') as out_file:
+        for sample in os.listdir(base_dir):
+            # For particle gun, only consider target area files
+            if 'PGsim' in base_dir and not 'tgtarea' in sample:
+                continue
+            sample_dir = os.path.join(base_dir, sample, 'Ntuples')
+            write_paramlist(out_file, sample_dir, partitions_to_merge)
+            
+
+# Neutrons and kaons
+# base_dir = '/eos/experiment/sndlhc/users/marssnd/PGsim/neutrons/'
+write_nh_paramlist('paramlist_neutronMC.txt', '/eos/experiment/sndlhc/MonteCarlo/NeutralHadrons/FTFP_BERT/neutrons/', 100)
+write_nh_paramlist('paramlist_kaonMC.txt', '/eos/experiment/sndlhc/MonteCarlo/NeutralHadrons/FTFP_BERT/kaons/', 100)
 
 # Neutrinos
 partitions_to_merge = 1
 with open('paramlist_neutrinoMC.txt', 'w') as out_file:
     sample_dir = os.path.join('/eos/experiment/sndlhc/MonteCarlo/Neutrinos/Genie/sndlhc_13TeV_down_volTarget_100fb-1_SNDG18_02a_01_000')
-    partitions = os.listdir(sample_dir)
-    partitions = [int(i) for i in partitions]
-    max_partition = max(partitions)
-    min_partition = min(partitions)
-    start, end = min_partition, partitions_to_merge + min_partition
-    while start <= max_partition:
-        out_file.write(f"neutrino {start} {sample_dir} {end-1}\n")
-        start += partitions_to_merge
-        end += partitions_to_merge
+    write_paramlist(out_file, sample_dir, partitions_to_merge)
 
 # 2023 data
 files_to_merge = 20
