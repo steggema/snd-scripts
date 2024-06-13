@@ -28,11 +28,20 @@ pdgid_to_target = {
     116: 4,
     84: 4,
     13: 5,
-    -13:5
+    -13:5,
+    130: 6,
+    310: 6,
+    311: 6,
+    321: 6
+
 }
 
 def pdg_id_to_t(pdg_id: int) -> int:
-    return pdgid_to_target[pdg_id]
+    try:
+        return pdgid_to_target[pdg_id]
+    except KeyError:
+        print(f'Unknown pdg id: {pdg_id}')
+        return -1
 
 def np_to_ak(arr, target) -> Tuple[ak.Array, ak.Array]:
     '''Convert numpy hits and target arrays to 

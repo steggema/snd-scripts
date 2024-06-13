@@ -6,12 +6,12 @@ The MC and data are not saved in a very systematic way in SND, so need targeted 
 import os
 from glob import glob
 
-def write_paramlist(out_file, sample_dir, partitions_to_merge, ptype='neutron'):
+def write_paramlist(out_file, sample_dir, partitions_to_merge, tag='neutrino', ptype='neutron'):
     partitions = [int(i) for i in os.listdir(sample_dir)]
     min_partition, max_partition =  min(partitions), max(partitions)
     start, end = min_partition, partitions_to_merge + min_partition
     while start <= max_partition:
-        out_file.write(f"{ptype} {start} {sample_dir} {min(end-1, max_partition)}\n")
+        out_file.write(f"{ptype} {start} {sample_dir} {min(end-1, max_partition)} {tag}\n")
         start += partitions_to_merge
         end += partitions_to_merge
 
@@ -23,7 +23,7 @@ def write_nh_paramlist(out_file_name, base_dir, partitions_to_merge):
             if 'PGsim' in base_dir and not 'tgtarea' in sample:
                 continue
             sample_dir = os.path.join(base_dir, sample, 'Ntuples')
-            write_paramlist(out_file, sample_dir, partitions_to_merge)
+            write_paramlist(out_file, sample_dir, partitions_to_merge, tag=sample)
             
 
 # Neutrons and kaons
