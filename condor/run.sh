@@ -23,6 +23,6 @@ isdata=$6
 (
     source /afs/cern.ch/user/s/steggema/miniconda3/etc/profile.d/conda.sh
     conda activate ak
-    python $SNDLHC_mymaster/snd-scripts/preprocessing/convert_to_awkward.py -i $OUTPUTDIR/$tag/hits_$partition.npz -o $OUTPUTDIR/$tag
+    python $SNDLHC_mymaster/snd-scripts/preprocessing/convert_to_awkward.py -i $OUTPUTDIR/$tag/hits_$partition.npz -o $OUTPUTDIR/$tag $isdata
     rm $OUTPUTDIR/$tag/hits_$partition.npz
 )

@@ -80,7 +80,7 @@ def np_to_ak(arr, target) -> Tuple[ak.Array, ak.Array]:
 
     return hits, targets
 
-def np_to_ak_counts(arr, target, counts) -> Tuple[ak.Array, ak.Array]:
+def np_to_ak_counts(arr, target, counts, is_data=False) -> Tuple[ak.Array, ak.Array]:
     '''Convert numpy hits and target arrays to 
     corresponding awkward arrays'''
 
@@ -102,11 +102,22 @@ def np_to_ak_counts(arr, target, counts) -> Tuple[ak.Array, ak.Array]:
         'det':hits[:,:,7]
         })
     
-    targets = ak.zip({
-        'start_z':ak.from_numpy(np.ascontiguousarray(target[:,0])),
-        'pdg':ak.from_numpy(np.vectorize(pdg_id_to_t)(np.ascontiguousarray(target[:,1]))),
-        'pz':ak.from_numpy(np.ascontiguousarray(target[:,2]))
-    })
+    if not is_data:
+        targets = ak.zip({
+            'start_z':ak.from_numpy(np.ascontiguousarray(target[:,0])),
+            'pdg':ak.from_numpy(np.vectorize(pdg_id_to_t)(np.ascontiguousarray(target[:,1]))),
+            'pz':ak.from_numpy(np.ascontiguousarray(target[:,2])),
+            'event_id':ak.from_numpy(np.ascontiguousarray(target[:,3])),
+            'x':ak.from_numpy(np.ascontiguousarray(target[:,4])),
+            'y':ak.from_numpy(np.ascontiguousarray(target[:,5])),
+            'z':ak.from_numpy(np.ascontiguousarray(target[:,6]))
+        })
+    else:
+            targets = ak.zip({
+            'run':ak.from_numpy(np.ascontiguousarray(target[:,0])),
+            'fill':ak.from_numpy(np.ascontiguousarray(target[:,1])),
+            'event':ak.from_numpy(np.ascontiguousarray(target[:,2]))
+        })
 
     return hits, targets
 
@@ -117,6 +128,7 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--input_files", dest="input_files", help="Input npz files (with wildcard)", required=False, default='/Users/jan/cernbox/sndml/neutrino_0.npz')
     parser.add_argument('-o', '--output_folder', dest='output_folder', help='Output folder', required=False, default='output/')
     parser.add_argument('-c', '--from_counts', dest='from_counts', help='Whether the array is flat and accompanied by a counts array', required=False, default=True)
+    parser.add_argument("-d", "--is_data", dest="is_data",  action='store_true', help="is real data?", default=False)
 
     args = parser.parse_args()
 
@@ -136,7 +148,7 @@ if __name__ == '__main__':
                 hits, targets = np_to_ak(arr, target)
             else:
                 counts = in_file['n_hits']
-                hits, targets = np_to_ak_counts(arr, target, counts)
+                hits, targets = np_to_ak_counts(arr, target, counts, args.is_data)
             out_file_name = os.path.splitext(os.path.basename(in_file_name))[0]
             ak.to_parquet(hits, os.path.join(output_folder, f'{out_file_name}_hits.pt'))
             ak.to_parquet(targets, os.path.join(output_folder, f'{out_file_name}_targets.pt'))

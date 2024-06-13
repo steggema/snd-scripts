@@ -53,5 +53,5 @@ with open('paramlist_data_2023.txt', 'w') as out_file:
             start += 1
             if start > end:
                 continue
-        out_file.write(f"neutrino {start} {sample_dir} {end} -d\n")
+        out_file.write(f"neutrino {start} {sample_dir} {end} data_2023 -d\n")
         prev_start, prev_end = start, end
