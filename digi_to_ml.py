@@ -137,15 +137,15 @@ for i_event, event in tqdm(enumerate(tchain), total=tchain.GetEntries()):
         x1 = event.MCTrack[1].GetStartX()
         y1 = event.MCTrack[1].GetStartY()
         z1 = event.MCTrack[1].GetStartZ()
-        if options.etype=='neutrino':
-            if not ((np.abs(event_pdg0)//10)==1 and (np.abs(event_pdg0)%2)==0): continue
-            #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
-        if options.etype=='neutron':
-            if not (event.MCTrack[0].GetPdgCode()==2112): continue
-            #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
-        if options.etype=='muon':
-            if not abs(event.MCTrack[0].GetPdgCode())==13: continue
-            #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+        # if options.etype=='neutrino':
+        #     if not ((np.abs(event_pdg0)//10)==1 and (np.abs(event_pdg0)%2)==0): continue
+        #     #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+        # if options.etype=='neutron':
+        #     if not (event_pdg0==2112): continue
+        #     #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
+        # if options.etype=='muon':
+        #     if not abs(event_pdg0)==13: continue
+        #     #print('event ', i_event,' track0 type: ', event.MCTrack[0].GetPdgCode())
         
         #set event_id
         event_id = (int(options.part)+1)*100000 + i_event
