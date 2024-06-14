@@ -6,12 +6,12 @@ The MC and data are not saved in a very systematic way in SND, so need targeted 
 import os
 from glob import glob
 
-def write_paramlist(out_file, sample_dir, partitions_to_merge, tag='neutrino', ptype='neutron'):
+def write_paramlist(out_file, sample_dir, partitions_to_merge, tag='neutrino'):
     partitions = [int(i) for i in os.listdir(sample_dir)]
     min_partition, max_partition =  min(partitions), max(partitions)
     start, end = min_partition, partitions_to_merge + min_partition
     while start <= max_partition:
-        out_file.write(f"{ptype} {start} {sample_dir} {min(end-1, max_partition)} {tag}\n")
+        out_file.write(f"{start} {sample_dir} {min(end-1, max_partition)} {tag}\n")
         start += partitions_to_merge
         end += partitions_to_merge
 
@@ -53,5 +53,5 @@ with open('paramlist_data_2023.txt', 'w') as out_file:
             start += 1
             if start > end:
                 continue
-        out_file.write(f"neutrino {start} {sample_dir} {end} data_2023 -d\n")
+        out_file.write(f"{start} {sample_dir} {end} data_2023 -d\n")
         prev_start, prev_end = start, end

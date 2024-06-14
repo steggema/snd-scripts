@@ -13,9 +13,8 @@ with open(args.config) as f:
     out_lines = []
     lines = f.readlines()
     for line in lines:
-        # Get second column of each line
-        job_id = line.split()[1]
-        out_dir = line.split()[4]
+        job_id = line.split()[0]
+        out_dir = line.split()[3]
 
         files = [f.split('_')[1] for f in os.listdir(os.path.join(args.dir, out_dir)) if f.endswith('hits.pt')]
 

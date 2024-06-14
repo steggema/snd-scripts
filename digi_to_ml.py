@@ -23,7 +23,6 @@ parser.add_argument("-e", "--end_partition", dest="end_part", type=int, help="nu
 parser.add_argument("-d", "--is_data", dest="is_data",  action='store_true', help="is real data?", default=False)
 parser.add_argument("-o", "--outPath", dest="outPath", help="output directory", required=False,
                     default="/afs/cern.ch/user/s/steggema/work/snd/data/")
-parser.add_argument("-t", "--type", dest="etype", help="event type to select", default='neutrino')
 parser.add_argument("-nh", "--nhits", dest="nhits", type=int, help="minimum number of scifi hits", default=75)
 
 options = parser.parse_args()
@@ -76,8 +75,7 @@ for part in range(p_start, p_end + 1):
             
 
 ## OUTPUT FILE
-# out_path = os.path.join(options.outPath, options.etype, *mc_dir.split('/')[-2:-1] if options.etype=='neutrino' else mc_dir.split('/')[-3:-1])
-out_path = os.path.join(options.outPath) #, options.etype, *mc_dir.split('/')[-2:-1] if options.etype=='neutrino' else mc_dir.split('/')[-3:-1])
+out_path = os.path.join(options.outPath)
 if not os.path.exists(out_path):
     print('Creating output directory:', out_path)
     os.makedirs(out_path)
@@ -205,8 +203,5 @@ if debug:
         if det == 'Scifi':
             geo.modules[det].GetPosition(detID, A, B)
             print(f'{det} {detID} horiz pos:', np.around(A, decimals=0), np.around(B, decimals=0))
-
-
-# np.savez_compressed(os.path.join(out_path, 'hits_{}.npz'.format(*mc_dir.split('/')[-1:] if options.etype=='neutrino' else mc_dir.split('/')[-1:])), hits=hitmap, targets=event_meta, n_hits=n_hits_arr)
 
 np.savez_compressed(os.path.join(out_path, f'hits_{p_start}.npz'), hits=hitmap, targets=event_meta, n_hits=n_hits_arr)

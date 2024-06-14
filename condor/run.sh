@@ -2,12 +2,11 @@
 SNDLHC_mymaster=/afs/cern.ch/user/s/steggema/work/snd_lx9/
 OUTPUTDIR=/afs/cern.ch/user/s/steggema/work/snd/data/
 
-etype=$1
-partition=$2
-MC_PATH=$3
-endpartition=$4
-tag=$5
-isdata=$6
+partition=$1
+MC_PATH=$2
+endpartition=$3
+tag=$4
+isdata=$5
 (
     export ALIBUILD_WORK_DIR=$SNDLHC_mymaster/sw #for alienv
 
@@ -17,7 +16,7 @@ isdata=$6
     eval `alienv load --no-refresh sndsw/latest`
     echo $SNDSW_ROOT
 
-    /cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/bin/python $SNDLHC_mymaster/snd-scripts/digi_to_ml.py -mc $MC_PATH -t $etype -p $partition -o $OUTPUTDIR/$tag -e $endpartition $isdata
+    /cvmfs/sndlhc.cern.ch/SNDLHC-2023/Aug30/bin/python $SNDLHC_mymaster/snd-scripts/digi_to_ml.py -mc $MC_PATH -p $partition -o $OUTPUTDIR/$tag -e $endpartition $isdata
 )
 # Now convert to awkward
 (
