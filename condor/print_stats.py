@@ -1,7 +1,6 @@
-'''Prints total evnt numbers for each MC sample.
+'''Prints total event numbers for each MC sample.
 Given MC samples are not saved in systematic way in SND, need dedicated code for each sample.
 '''
-
 
 import os
 from glob import glob
